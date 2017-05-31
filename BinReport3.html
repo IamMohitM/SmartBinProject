@@ -155,13 +155,6 @@
         }else//if the dataset has already been called not required to call again
             getData(dataset)
 
-        /* function(data) {
-             dataset = data;
-             getData(dataset);
-         });
- } else
-     getData(dataset);*/
-    }
 
     // Close the dropdown menu if the user clicks outside of it
     window.onclick = function (event) {
@@ -337,7 +330,7 @@
                         .style("opacity", .9);
                     div.html(parse(d.date) +
                             "<br/>" /*+ d.count + " hours<br/>"*/ +
-                            p(d.from_time.subtract(d.count, "hours")._d))
+                            p(d.from_time.subtract(d.count, "hours")._d)) //subtract the count hours to disply the starting time.
                         .style("left", (d3.event.pagesX) + "px")
                         .style("top", (d3.event.pageY - 28) + "px");
                 })

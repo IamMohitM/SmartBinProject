@@ -1,5 +1,6 @@
 /**
  * Created by Mohit on 24-04-2017.
+Used to post data to cloud
  */
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -25,18 +26,22 @@ public class PostSmartBinData {
 
     public static void main(String args[]) {
         PostDataDemo p=new PostDataDemo();
+//Initializing the PostDataDemo class
         String json="";
         parser = new JSONParser();
         try {
             JSONArray jsonArray = (JSONArray) parser.parse(new FileReader("C:\\Users\\Mohit\\Desktop\\" +
                     "Bin2.json"));
+
+//References the json file
             //jsonArray.toArray();
 
-                for (Object o :jsonArray) {
-
+                for (Object o :jsonArray) {//Iterates throught json array
+		
                     JSONObject Temp = (JSONObject) o;
+//Each Object type is converted to JsonObject
 
-                   // System.out.println(Temp);
+                   =
                     json = "{\n\"device_type\":\"Generic\",\n" +
                             "\"device_key\":\"BO4WRK88EVNWT5LGFER3\",\n" +
                             "\"node_no\":\"002\",\n" +
@@ -49,6 +54,9 @@ public class PostSmartBinData {
                     String response = p.post("http://aws2.axelta.com/services/data", json);
                     System.out.println(response);
 
+//NOTE: sometimes the posting of data is interrupted. So half the data might be posted. So restarting the program will create double copies in tyhe database.
+//It might ruin the visualization
+//So make sure you edit the json file so that the posting starts only from where it started
                     System.out.println(json);
                 }
 
