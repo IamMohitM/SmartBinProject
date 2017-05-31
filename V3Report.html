@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link href="bootstrap.min.css" type="text/css" rel="stylesheet"/>
+    <link href="BinStyleSheet.css" type="text/css" rel="stylesheet" />
+    <meta charset="utf-8" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="d3.v3.min.js"></script><!--
+    <script src="moment-with-locales.js"></script>-->
+    <script src="moment.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-8" id="tenColumn">
+            <div class="text-center Header">
+                <h2>Waste Bin Overflow Report</h2>
+            </div>
+        </div>
+        <div class="col-md-4" id="twoColumn">
+            <div class="row" style="margin-top: 18px;">
+                <div class="col-md-6">
+                    <div class="dropdwn" style="float:right; margin:5px; margin-right: 100px;">
+                        <button class="btn btn-primary btn-block" style="width: 100px;" id="ButtonMonth" onclick="myMonth()">Month</button>
+                        <div id="Month" class="dropdown-content">
+                            <a onclick=selectMonth(0)>January</a>
+                            <a onclick=selectMonth(1)>February</a>
+                            <a onclick=selectMonth(2)>March</a>
+                            <a onclick=selectMonth(3)>April</a>
+                            <a onclick=selectMonth(4)>May</a>
+                            <a onclick=selectMonth(5)>June</a>
+                            <a onclick=selectMonth(6)>July</a>
+                            <a onclick=selectMonth(7)>August</a>
+                            <a onclick=selectMonth(8)>September</a>
+                            <a onclick=selectMonth(9)>October</a>
+                            <a onclick=selectMonth(10)>November</a>
+                            <a onclick=selectMonth(11)>December</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="dropdwn" style="float:right; margin-top: 5px; margin-right:180px; margin-left: 5px;">
+                        <button id="ButtonYear" onclick="myYear()"  style="width: 100px;" class="btn btn-primary btn-block center-block">Year</button>
+                        <div id="Year" class="dropdown-content">
+                            <a onclick=selectYear(0) value="2016">2016</a>
+                            <a onclick=selectYear(1) value="2017">2017</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <div class="row" id="wellrow">
+                <div class="well">
+                    <h4 class="text-center" style="margin-right: 15px">Bin Details</h4>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="rectangle" style="background: red; margin-top: 5px">
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <p>Bin is Overflowing</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="rectangle" style="background: #99ccff; margin-top: 5px">
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <p>Bin has Space</p></div> </div>
+                    <div id="pp" style="font-size: 13px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    var margin = { top: 20, bottom: 80, right:50, left: 70 };
+
+    var dataset=0;
+
+    var width = 620 - margin.left + margin.right, height = 450 - margin.top - margin.bottom;
+
+    function myMonth() {
+        //This function toggles the month button list (dropdown)
+        document.getElementById("Year").classList.remove("show");
+        document.getElementById("Month").classList.toggle("show");
+    }
+    function myYear() {
+        //This function toggles the year button list (dropdown)
+        document.getElementById("Month").classList.remove("show");
+        document.getElementById("Year").classList.toggle("show");
+    }
+
+    function selectMonth(index) {
+        //notes the selected month
+        month = document.getElementById("Month").children;
+        document.getElementById("ButtonMonth").innerHTML = month[index].text;
+        parseData();
+
+    }
+    function selectYear(index) {
+        //notes the selected year
+        year = document.getElementById("Year").children;
+        document.getElementById("ButtonYear").innerHTML = year[index].text;
+        parseData();
+    }
+
+    function parseData() {
+        month = document.getElementById("ButtonMonth").innerHTML;
+        year = document.getElementById("ButtonYear").innerHTML;
+        //This function is called everytime the month or year is selected
+        //When the month or year is selected the first time, the other is still not selected
+        //Hence the next if conditions sets a default value
+        if (year == "Year") {
+            year = "2016";
+            document.getElementById("ButtonYear").innerHTML = year;
+        }
+        if (month == "Month") {
+            month = "August";
+            document.getElementById("ButtonMonth").innerHTML = year;
+        }
+              //  d3.json("BinData.json", getData);
+
+        //Makes an ajax call to get the data from the cloud
+        if (dataset == 0) {
+            $.ajax({
+                url:
+                    "http://aws2.axelta.com/services/node/getTransactions?user_name=mohit@axelta.com&device_no=Hyd_Bin&node_no=001&limit=5000",
+                type: 'get',
+                success: function(data) {
+                    console.log(data);
+
+                    getData(data.reverse())
+                },
+
+                error: function(data) {
+                    alert("Please try again..");
+                }
+            });
+        }else
+//if the dataset has already been called not required to call again
+            getData(dataset)
+    }
+
+    // Close the dropdown menu if the user clicks outside of it
+    window.onclick = function (event) {
+        if (!event.target.matches('.btn')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            var i;
+            for (i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+
+    function getData(data) {
+
+        if (dataset == 0) {
+            dataset = data;
+        }
+        var green = [], red = [];
+
+        //Changes format of time and date using moment.js
+        data.forEach(function (d) {
+            d["time"] = moment(d["time"], "hh:mm:ss");
+            d["date"] = moment(d["date"], "DD-MM-YYYY");
+            return d;
+        });
+//Return an array with only data of month year seleted
+        data = data.filter(function (d) {
+            return month == d["date"].format("MMMM") && year == d["date"].format("YYYY")
+        });
+
+        var max_height=3.0;
+        var warning_height = max_height * 0.92;
+
+        for (i = 0; i < data.length;) {
+            var k = +i;
+            var date=data[i].date.format("DD-MM-YYYY")
+            var time=data[i].time.format("HH")
+            var count = 0;
+            from = moment(data[k].time._i, "HH:mm:SS");
+            if (data[i].bin_height <= warning_height) {
+                //creates an array with the data where the bin could be filled or was not full. Enters in green array
+                //<92%
+                while (i < data.length && data[i].bin_height <= warning_height && date==data[i].date.format("DD-MM-YYYY") && time==data[i].time.format("HH")) {
+                    count++;
+                    /* if (from.isAfter(moment(data[i].time._i, "HH:mm:SS"))) {
+                     from = moment(data[i].time._i, "HH:mm:SS");
+                     }*/
+                    i++;
+
+                }
+
+                green.push({
+                    'date': moment(data[k].date._i, "DD-MM-YYYY")._d,
+                    'from_time':from,
+                    "count": count
+                });
+            }
+
+            else {//creates an array with the data where the bin was overfilled or was full >92%
+                
+                while (i < data.length && data[i].bin_height > warning_height && date==data[i].date.format("DD-MM-YYYY")&& time==data[i].time.format("HH")) {
+                    count++;
+                    /*if (from.isAfter(moment(data[i].time._i, "HH:mm:SS"))) {
+                     from = moment(data[i].time._i, "HH:mm:SS");
+                     }*/
+                    i++;
+
+                }
+                red.push({
+                    "date": moment(data[k].date._i,"DD-MM-YYYY")._d,
+                    "from_time": from,
+                    "count": count
+                });
+            }
+        }
+        visualize(green, red)
+    }
+
+    function visualize(green,red)
+    {
+        var div = d3.select("body").append("div")
+            .attr("class", "tooltip").attr("id","tip")
+            .style("opacity", 0);
+
+        p = d3.time.format("%I:%M:%S %p");
+        parse = d3.time.format("%a %d-%m-%Y")
+
+        d3.select("body").selectAll("svg").remove()
+        //This function is called every time the month and year is changed/selected, hence the svg should be cleared.
+
+
+        d3.select(".legend").remove();
+
+        divSVG=d3.select("body").select("#tenColumn").append("div").attr("class", "row")
+
+        wellRow=d3.select("body").select("#wellrow").select(".well").append("div").attr("class","row")
+
+        //Setting and creating the width and height of svg.
+        svg = divSVG
+            .append("svg")
+            .attr("width", width + margin.right + margin.left)
+            .attr("height", height + margin.top + margin.bottom);
+        
+//Calculates the total hours the bin was full. Red only has the objects when the bi =n was full
+            total=d3.sum(red,function(d) {
+            return d.count;
+        })
+
+        //average = red.length * 2;
+
+        d3.select("body").select("#unclean").append("p").attr("id", "pp")
+
+        unclean("pp", total);
+
+
+        g = svg.append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+        g.append("text").attr("transform", "translate(" + width/2+ ","+ 400 +")").text("Dates");
+        //xAxis Label
+        x_scale = d3.time.scale().domain(d3.extent(green, function(d) { return d.date; })).rangeRound([0, width]);
+
+        //Creates the xAxis scale
+        y_scale = d3.time.scale().domain([moment("00:00:00", "HH:mm:SS")._d, moment("23:59:59", "HH:mm:SS")._d])
+            .range([height, 0]);
+        //Creates the yAxis scale
+        xAxis = d3.svg.axis().scale(x_scale).tickFormat(d3.time.format("%d %b")).ticks(12);
+        //creating the xAxis. Notice the tickformat
+        yAxis = d3.svg.axis().scale(y_scale).tickFormat(d3.time.format("%I:%M %p")).orient("left");
+
+        hour_scale = d3.scale.linear().domain([0, 24]).range([height, 0]);
+
+        debugger;
+        g.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(0," + height + ")").call(xAxis);
+
+        g.append("g").append("text").attr("transform","rotate(-90)").attr("y",-50).attr("x",-200).text("Time");
+
+        g.append("g")
+            .attr("class", "axis")
+            .attr("transform","translate(0,0)").call(yAxis)
+
+        redBar= g.selectAll("rect")
+            .data(red.sort(function (a, b) { return b.count - a.count; }))
+            .enter().append("g")
+            .append("rect")
+            .attr("class", "bar")
+//creating redBar i.e rectangles
+        redBar.transition().duration(50).attr("x", function (d) { return x_scale(d.date)-2; })
+            .attr("y", function (d) { s = d.from_time; return y_scale(s.add(d.count, "hours")._d); })
+            .attr("width", function (d) { return 7; }).transition().duration(2500)
+            .attr("height", function (d) { return height-hour_scale(d.count); })
+            .attr("fill", "red")
+        //filling red bar with red and setting attributes
+        
+        //Javascript functions for the tooltips
+        redBar.on("mouseover", function (d) {
+            div.transition()
+                .duration(500)
+                .style("opacity", .9);
+            div.html(parse(d.date) + "<br/>" /*+ d.count + " hours<br/>"*/ +p(d.from_time.subtract(d.count,"hours")._d))
+                .style("left", (d3.event.pagesX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        })
+            .on("mouseout", function (d) {
+                div.style("opacity", 0);
+            });
+        
+        //Similar to greenBar
+        greenBar = g.selectAll("circle")
+            .data(green.sort(function (a, b) { return b.count - a.count; }))
+            .enter().append("g")
+            .append("rect")
+            .attr("class", "bar")
+
+        greenBar.attr("x", function (d) { return x_scale(d.date)-2; })
+            .attr("y", function (d) { s = d.from_time; return y_scale(s.add(d.count, "hours")._d); }).transition()
+            .attr("width", function (d) { return  7; })
+            .attr("height", function (d) { return height-hour_scale(d.count); }).duration(1500)
+            .attr("fill", "#99ccff")
+
+        greenBar.on("mouseover", function (d) {
+
+
+            div.style("opacity", .9);
+            div.html(parse(d.date) + "<br/>" /*+ d.count + " hours<br/>"*/ +p(d.from_time.subtract(d.count,"hours")._d))
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        })
+            .on("mouseout", function (d) {
+                div.style("opacity", -4);
+            });
+    }
+
+    function unclean(id,total) {
+        document.getElementById(id).innerHTML = "Overflow Hours/month: " + total;
+    }
+
+</script>
+</body>
+</html>
