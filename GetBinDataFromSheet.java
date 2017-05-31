@@ -29,9 +29,11 @@ public class GetBinDataFromSheet {
                 Row currentRow = iterator.next();
                 Iterator<Cell> cellIterator = currentRow.iterator();
                 if (currentRow.getRowNum() >0) {
+//Starts iteration from 2nd row(1st index). 1st row has column names (time values
                     while (cellIterator.hasNext()) {
                         Cell currentCell = cellIterator.next();
                         if (currentCell.getColumnIndex() != 0) {
+//ie=terates if column is not zero. 0th column has date values
                             int index = currentCell.getColumnIndex();
                             Cell cell = rowOne.getCell(index);
                             Date t = cell.getDateCellValue();
@@ -51,8 +53,8 @@ public class GetBinDataFromSheet {
                                     "'node_no':'002',\n" +
                                     "'device_no':'Hyd_Bin',\n" +
                                     "'client':'GHMC'\n},";
-                            /*String response=p.post("http://aws2.axelta.com/services/data", data);
-                            System.out.println(response);*/
+                            // You can copy paste the output to a json file or write it directly from the program
+				//Make sure the json is validated. add the out put between '[]' to make it an array of json objects.
                             System.out.println(data);
 
                         }
